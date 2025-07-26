@@ -831,25 +831,32 @@ export const mockResources = [
 
 // Helper functions
 export const getResourcesByCategory = (category) => {
-  return mockResources.filter(resource => resource.category === category);
+  return mockResources.filter(resource => resource && resource.category === category);
 };
 
 export const getVerifiedResources = () => {
-  return mockResources.filter(resource => resource.verified);
+  return mockResources.filter(resource => resource && resource.verified);
 };
 
 export const searchResources = (query) => {
   const lowerQuery = query.toLowerCase();
   return mockResources.filter(resource => 
-    resource.name.toLowerCase().includes(lowerQuery) ||
-    resource.description.toLowerCase().includes(lowerQuery) ||
-    resource.services?.some(service => service.toLowerCase().includes(lowerQuery)) ||
-    resource.address.toLowerCase().includes(lowerQuery)
+    resource && (
+      (resource.name && resource.name.toLowerCase().includes(lowerQuery)) ||
+      (resource.description && resource.description.toLowerCase().includes(lowerQuery)) ||
+      (resource.services && resource.services.some(service => service && service.toLowerCase().includes(lowerQuery))) ||
+      (resource.address && resource.address.toLowerCase().includes(lowerQuery))
+    )
   );
 };
 
 export const getResourcesNearLocation = (latitude, longitude, radiusKm = 10) => {
   return mockResources.filter(resource => {
+    if (!resource || !resource.coordinates || 
+        typeof resource.coordinates.latitude !== 'number' || 
+        typeof resource.coordinates.longitude !== 'number') {
+      return false;
+    }
     const distance = calculateDistance(
       latitude, longitude,
       resource.coordinates.latitude, resource.coordinates.longitude

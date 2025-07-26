@@ -11,10 +11,16 @@ import { Ionicons } from '@expo/vector-icons';
 import HomeScreen from '../screens/home/HomeScreen';
 import ResourcesScreen from '../screens/resources/ResourcesScreen';
 import ResourceDetailScreen from '../screens/resources/ResourceDetailScreen';
+import MapScreen from '../screens/resources/MapScreen';
 import IceReportsScreen from '../screens/ice-reports/IceReportsScreen';
 import ReportDetailScreen from '../screens/ice-reports/ReportDetailScreen';
 import CreateReportScreen from '../screens/ice-reports/CreateReportScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
+
+// Import advocate screens
+import AdvocateLogin from '../screens/advocate/AdvocateLogin';
+import AdvocateDashboard from '../screens/advocate/AdvocateDashboard';
+import ResourceManagement from '../screens/advocate/ResourceManagement';
 
 // Import onboarding screens
 import LanguageSelectionScreen from '../screens/onboarding/LanguageSelectionScreen';
@@ -127,6 +133,14 @@ const ResourcesStack = () => {
           headerBackTitleVisible: false,
         })}
       />
+      <Stack.Screen 
+        name="ResourcesMap" 
+        component={MapScreen}
+        options={{ 
+          title: 'Resource Map',
+          headerBackTitleVisible: false,
+        }}
+      />
     </Stack.Navigator>
   );
 };
@@ -212,7 +226,53 @@ const ProfileStack = () => {
       <Stack.Screen 
         name="ProfileMain" 
         component={ProfileScreen}
-        options={{ title: 'Profile' }}
+        options={{ title: 'Settings & Privacy' }}
+      />
+    </Stack.Navigator>
+  );
+};
+
+// Advocate Stack Navigator
+const AdvocateStack = () => {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: Colors.primary,
+          ...Shadows.sm,
+        },
+        headerTintColor: Colors.background,
+        headerTitleStyle: {
+          fontFamily: Typography.fontFamily.semiBold,
+          fontSize: Typography.fontSize.lg,
+        },
+        gestureEnabled: true,
+      }}
+    >
+      <Stack.Screen 
+        name="AdvocateLogin" 
+        component={AdvocateLogin}
+        options={{ 
+          title: 'Advocate Login',
+          headerShown: false, // Custom header in component
+        }}
+      />
+      <Stack.Screen 
+        name="AdvocateDashboard" 
+        component={AdvocateDashboard}
+        options={{ 
+          title: 'Advocate Dashboard',
+          headerLeft: null, // Prevent going back to login
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen 
+        name="ResourceManagement" 
+        component={ResourceManagement}
+        options={{ 
+          title: 'Resource Management',
+          headerBackTitleVisible: false,
+        }}
       />
     </Stack.Navigator>
   );
@@ -319,10 +379,39 @@ const AppNavigator = ({ isOnboardingComplete = false }) => {
             }}
           />
         ) : (
-          <RootStack.Screen 
-            name="Main" 
-            component={TabNavigator}
-          />
+          <>
+            <RootStack.Screen 
+              name="Main" 
+              component={TabNavigator}
+            />
+            <RootStack.Screen 
+              name="Advocate" 
+              component={AdvocateStack}
+              options={{
+                presentation: 'modal',
+                cardStyleInterpolator: ({ current, layouts }) => {
+                  return {
+                    cardStyle: {
+                      transform: [
+                        {
+                          translateY: current.progress.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [layouts.screen.height, 0],
+                          }),
+                        },
+                      ],
+                    },
+                    overlayStyle: {
+                      opacity: current.progress.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0, 0.5],
+                      }),
+                    },
+                  };
+                },
+              }}
+            />
+          </>
         )}
       </RootStack.Navigator>
     </NavigationContainer>

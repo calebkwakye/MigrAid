@@ -447,36 +447,39 @@ export const anonymizeLocation = (coordinates) => {
 };
 
 export const getActiveReports = () => {
-  return mockIceReports.filter(report => report.isActive);
+  return mockIceReports.filter(report => report && report.isActive);
 };
 
 export const getRecentReports = (hours = 24) => {
   const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
   return mockIceReports.filter(report => 
-    new Date(report.timestamp) > cutoff
+    report && report.timestamp && new Date(report.timestamp) > cutoff
   );
 };
 
 export const getReportsByType = (type) => {
-  return mockIceReports.filter(report => report.type === type);
+  return mockIceReports.filter(report => report && report.type === type);
 };
 
 export const getReportsBySeverity = (severity) => {
-  return mockIceReports.filter(report => report.severity === severity);
+  return mockIceReports.filter(report => report && report.severity === severity);
 };
 
 export const getVerifiedReports = () => {
-  return mockIceReports.filter(report => report.verificationCount >= 2);
+  return mockIceReports.filter(report => report && typeof report.verificationCount === 'number' && report.verificationCount >= 2);
 };
 
 export const getCriticalReports = () => {
   return mockIceReports.filter(report => 
-    report.severity === SEVERITY_LEVELS.CRITICAL && report.isActive
+    report && report.severity === SEVERITY_LEVELS.CRITICAL && report.isActive
   );
 };
 
 export const getReportsNearLocation = (latitude, longitude, radiusKm = 10) => {
   return mockIceReports.filter(report => {
+    if (!report || !report.location || !report.location.coordinates) {
+      return false;
+    }
     const distance = calculateDistance(
       latitude, longitude,
       report.location.coordinates.latitude, 
