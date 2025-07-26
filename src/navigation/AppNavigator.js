@@ -1,5 +1,5 @@
-// Main App Navigator for MigrAid
-// Privacy-first navigation with accessibility features
+// MigrAid App Navigator - Professional Navigation System
+// Privacy-first navigation with accessibility and smooth transitions
 
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
@@ -7,21 +7,64 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 
-// Import screens (will be created next)
+// Import main app screens
 import HomeScreen from '../screens/home/HomeScreen';
 import ResourcesScreen from '../screens/resources/ResourcesScreen';
 import ResourceDetailScreen from '../screens/resources/ResourceDetailScreen';
 import IceReportsScreen from '../screens/ice-reports/IceReportsScreen';
 import ReportDetailScreen from '../screens/ice-reports/ReportDetailScreen';
 import CreateReportScreen from '../screens/ice-reports/CreateReportScreen';
-import AdvocateScreen from '../screens/advocate/AdvocateScreen';
-import OnboardingScreen from '../screens/onboarding/OnboardingScreen';
+import ProfileScreen from '../screens/profile/ProfileScreen';
+
+// Import onboarding screens
+import LanguageSelectionScreen from '../screens/onboarding/LanguageSelectionScreen';
+import AnonymousModeScreen from '../screens/onboarding/AnonymousModeScreen';
+import PermissionsScreen from '../screens/onboarding/PermissionsScreen';
 
 // Import theme
-import { Colors } from '../constants/theme';
+import { Colors, Typography, Spacing, Shadows } from '../constants/theme';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
+
+// Onboarding Stack Navigator
+const OnboardingStack = () => {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        gestureEnabled: true,
+        cardStyleInterpolator: ({ current, layouts }) => {
+          return {
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          };
+        },
+      }}
+    >
+      <Stack.Screen 
+        name="LanguageSelection" 
+        component={LanguageSelectionScreen}
+      />
+      <Stack.Screen 
+        name="AnonymousMode" 
+        component={AnonymousModeScreen}
+      />
+      <Stack.Screen 
+        name="Permissions" 
+        component={PermissionsScreen}
+      />
+    </Stack.Navigator>
+  );
+};
 
 // Stack navigators for each tab
 const HomeStack = () => {
@@ -30,11 +73,14 @@ const HomeStack = () => {
       screenOptions={{
         headerStyle: {
           backgroundColor: Colors.primary,
+          ...Shadows.sm,
         },
         headerTintColor: Colors.background,
         headerTitleStyle: {
-          fontWeight: 'bold',
+          fontFamily: Typography.fontFamily.semiBold,
+          fontSize: Typography.fontSize.lg,
         },
+        gestureEnabled: true,
       }}
     >
       <Stack.Screen 
@@ -44,6 +90,7 @@ const HomeStack = () => {
           title: 'MigrAid',
           headerStyle: {
             backgroundColor: Colors.primary,
+            ...Shadows.sm,
           }
         }}
       />
@@ -57,11 +104,14 @@ const ResourcesStack = () => {
       screenOptions={{
         headerStyle: {
           backgroundColor: Colors.primary,
+          ...Shadows.sm,
         },
         headerTintColor: Colors.background,
         headerTitleStyle: {
-          fontWeight: 'bold',
+          fontFamily: Typography.fontFamily.semiBold,
+          fontSize: Typography.fontSize.lg,
         },
+        gestureEnabled: true,
       }}
     >
       <Stack.Screen 
@@ -73,7 +123,8 @@ const ResourcesStack = () => {
         name="ResourceDetail" 
         component={ResourceDetailScreen}
         options={({ route }) => ({ 
-          title: route.params?.resource?.name || 'Resource Details' 
+          title: route.params?.resource?.name || 'Resource Details',
+          headerBackTitleVisible: false,
         })}
       />
     </Stack.Navigator>
@@ -86,11 +137,14 @@ const IceReportsStack = () => {
       screenOptions={{
         headerStyle: {
           backgroundColor: Colors.primary,
+          ...Shadows.sm,
         },
         headerTintColor: Colors.background,
         headerTitleStyle: {
-          fontWeight: 'bold',
+          fontFamily: Typography.fontFamily.semiBold,
+          fontSize: Typography.fontSize.lg,
         },
+        gestureEnabled: true,
       }}
     >
       <Stack.Screen 
@@ -101,43 +155,70 @@ const IceReportsStack = () => {
       <Stack.Screen 
         name="ReportDetail" 
         component={ReportDetailScreen}
-        options={{ title: 'Report Details' }}
+        options={{ 
+          title: 'Report Details',
+          headerBackTitleVisible: false,
+        }}
       />
       <Stack.Screen 
         name="CreateReport" 
         component={CreateReportScreen}
         options={{ 
           title: 'Report Activity',
-          presentation: 'modal' // Make it feel like a modal
+          presentation: 'modal',
+          headerBackTitleVisible: false,
+          cardStyleInterpolator: ({ current, layouts }) => {
+            return {
+              cardStyle: {
+                transform: [
+                  {
+                    translateY: current.progress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [layouts.screen.height, 0],
+                    }),
+                  },
+                ],
+              },
+              overlayStyle: {
+                opacity: current.progress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 0.5],
+                }),
+              },
+            };
+          },
         }}
       />
     </Stack.Navigator>
   );
 };
 
-const AdvocateStack = () => {
+const ProfileStack = () => {
   return (
     <Stack.Navigator
       screenOptions={{
         headerStyle: {
           backgroundColor: Colors.primary,
+          ...Shadows.sm,
         },
         headerTintColor: Colors.background,
         headerTitleStyle: {
-          fontWeight: 'bold',
+          fontFamily: Typography.fontFamily.semiBold,
+          fontSize: Typography.fontSize.lg,
         },
+        gestureEnabled: true,
       }}
     >
       <Stack.Screen 
-        name="AdvocateMain" 
-        component={AdvocateScreen}
-        options={{ title: 'Advocate Dashboard' }}
+        name="ProfileMain" 
+        component={ProfileScreen}
+        options={{ title: 'Profile' }}
       />
     </Stack.Navigator>
   );
 };
 
-// Tab Navigator
+// Bottom Tab Navigator
 const TabNavigator = () => {
   return (
     <Tab.Navigator
@@ -151,8 +232,8 @@ const TabNavigator = () => {
             iconName = focused ? 'library' : 'library-outline';
           } else if (route.name === 'Reports') {
             iconName = focused ? 'alert-circle' : 'alert-circle-outline';
-          } else if (route.name === 'Advocate') {
-            iconName = focused ? 'people' : 'people-outline';
+          } else if (route.name === 'Profile') {
+            iconName = focused ? 'person' : 'person-outline';
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -162,15 +243,18 @@ const TabNavigator = () => {
         tabBarStyle: {
           backgroundColor: Colors.background,
           borderTopColor: Colors.border,
-          paddingTop: 8,
-          paddingBottom: 8,
+          paddingTop: Spacing.sm,
+          paddingBottom: Spacing.sm,
           height: 60,
+          ...Shadows.sm,
         },
         tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '500',
+          fontSize: Typography.fontSize.xs,
+          fontFamily: Typography.fontFamily.medium,
+          fontWeight: Typography.fontWeight.medium,
         },
         headerShown: false, // We handle headers in individual stack navigators
+        tabBarHideOnKeyboard: true, // Hide tab bar when keyboard is open
       })}
     >
       <Tab.Screen 
@@ -178,7 +262,7 @@ const TabNavigator = () => {
         component={HomeStack}
         options={{
           tabBarLabel: 'Home',
-          tabBarAccessibilityLabel: 'Home tab, find resources and view recent reports'
+          tabBarAccessibilityLabel: 'Home tab, dashboard with resource categories and recent reports'
         }}
       />
       <Tab.Screen 
@@ -186,30 +270,30 @@ const TabNavigator = () => {
         component={ResourcesStack}
         options={{
           tabBarLabel: 'Resources',
-          tabBarAccessibilityLabel: 'Resources tab, browse legal aid, healthcare, and support services'
+          tabBarAccessibilityLabel: 'Resources tab, browse legal aid, healthcare, food, and shelter services'
         }}
       />
       <Tab.Screen 
         name="Reports" 
         component={IceReportsStack}
         options={{
-          tabBarLabel: 'Reports',
-          tabBarAccessibilityLabel: 'Community reports tab, view and report ICE activity'
+          tabBarLabel: 'ICE Reports',
+          tabBarAccessibilityLabel: 'Community reports tab, view and report ICE activity anonymously'
         }}
       />
       <Tab.Screen 
-        name="Advocate" 
-        component={AdvocateStack}
+        name="Profile" 
+        component={ProfileStack}
         options={{
-          tabBarLabel: 'Advocate',
-          tabBarAccessibilityLabel: 'Advocate dashboard for community workers'
+          tabBarLabel: 'Profile',
+          tabBarAccessibilityLabel: 'Profile tab, settings, privacy controls, and advocate login'
         }}
       />
     </Tab.Navigator>
   );
 };
 
-// Main App Navigator with onboarding
+// Main Root Stack Navigator
 const RootStack = createStackNavigator();
 
 const AppNavigator = ({ isOnboardingComplete = false }) => {
@@ -218,15 +302,20 @@ const AppNavigator = ({ isOnboardingComplete = false }) => {
       <RootStack.Navigator
         screenOptions={{
           headerShown: false,
-          gestureEnabled: false, // Disable swipe gestures for security
+          gestureEnabled: false, // Disable swipe gestures for security in root navigator
+          cardStyleInterpolator: ({ current }) => ({
+            cardStyle: {
+              opacity: current.progress,
+            },
+          }),
         }}
       >
         {!isOnboardingComplete ? (
           <RootStack.Screen 
             name="Onboarding" 
-            component={OnboardingScreen}
+            component={OnboardingStack}
             options={{
-              animationTypeForReplace: 'pop', // Smooth transition
+              animationTypeForReplace: 'pop',
             }}
           />
         ) : (

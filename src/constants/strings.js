@@ -1,11 +1,12 @@
 // MigrAid Multilingual Strings
-// Supporting English, French, Hausa, and Akan
+// Supporting English, Spanish, French, Hausa, and Akan
 
 export const SUPPORTED_LANGUAGES = [
-  { code: 'en', name: 'English', nativeName: 'English' },
-  { code: 'fr', name: 'French', nativeName: 'Français' },
-  { code: 'ha', name: 'Hausa', nativeName: 'Hausa' },
-  { code: 'ak', name: 'Akan', nativeName: 'Akan' },
+  { code: 'en', name: 'English', nativeName: 'English', flag: '🇺🇸' },
+  { code: 'es', name: 'Spanish', nativeName: 'Español', flag: '🇪🇸' },
+  { code: 'fr', name: 'French', nativeName: 'Français', flag: '🇫🇷' },
+  { code: 'ha', name: 'Hausa', nativeName: 'Hausa', flag: '🇳🇬' },
+  { code: 'ak', name: 'Akan', nativeName: 'Akan', flag: '🇬🇭' },
 ];
 
 export const strings = {
@@ -18,9 +19,13 @@ export const strings = {
     welcome: 'Welcome to MigrAid',
     welcomeMessage: 'Find resources safely and anonymously',
     selectLanguage: 'Select your language',
+    chooseLanguage: 'Choose Your Language',
+    languageDescription: 'Select your preferred language for the best experience',
+    canChangeLanguage: 'You can change your language anytime in settings',
     anonymousMode: 'Anonymous Mode',
     anonymousModeDesc: 'Browse without providing personal information',
     getStarted: 'Get Started',
+    continue: 'Continue',
     
     // Navigation
     home: 'Home',
@@ -89,6 +94,83 @@ export const strings = {
     tryAgain: 'Try Again',
   },
   
+  es: {
+    // App name and tagline
+    appName: 'MigrAid',
+    tagline: 'Navegador de recursos privado',
+    
+    // Onboarding
+    welcome: 'Bienvenido a MigrAid',
+    welcomeMessage: 'Encuentra recursos de forma segura y anónima',
+    selectLanguage: 'Selecciona tu idioma',
+    chooseLanguage: 'Elige Tu Idioma',
+    languageDescription: 'Selecciona tu idioma preferido para la mejor experiencia',
+    canChangeLanguage: 'Puedes cambiar tu idioma en cualquier momento en configuración',
+    anonymousMode: 'Modo Anónimo',
+    anonymousModeDesc: 'Navega sin proporcionar información personal',
+    getStarted: 'Comenzar',
+    continue: 'Continuar',
+    
+    // Navigation
+    home: 'Inicio',
+    resources: 'Recursos',
+    iceReports: 'Reportes ICE',
+    advocate: 'Abogado',
+    settings: 'Configuración',
+    
+    // Home screen
+    findResources: 'Encontrar Recursos',
+    recentReports: 'Reportes ICE Recientes',
+    safetyFirst: 'Tu seguridad y privacidad son lo primero',
+    
+    // Resource categories
+    legal: 'Ayuda Legal',
+    healthcare: 'Atención Médica',
+    food: 'Apoyo Alimentario',
+    shelter: 'Refugio',
+    education: 'Educación',
+    employment: 'Empleo',
+    translation: 'Traducción',
+    
+    // Resource details
+    address: 'Dirección',
+    phone: 'Teléfono',
+    website: 'Sitio Web',
+    hours: 'Horarios',
+    verified: 'Verificado',
+    getDirections: 'Obtener Direcciones',
+    callNow: 'Llamar Ahora',
+    
+    // ICE Reports
+    reportIceActivity: 'Reportar Actividad ICE',
+    viewReports: 'Ver Reportes',
+    location: 'Ubicación',
+    time: 'Hora',
+    description: 'Descripción',
+    anonymous: 'Anónimo',
+    submitReport: 'Enviar Reporte',
+    
+    // Privacy and security
+    yourPrivacy: 'Tu Privacidad',
+    dataProtection: 'Tus datos están protegidos y son anónimos',
+    noLocationTracking: 'Sin seguimiento de ubicación',
+    encryptedReports: 'Reportes encriptados',
+    
+    // Common actions
+    search: 'Buscar',
+    filter: 'Filtrar',
+    map: 'Mapa',
+    list: 'Lista',
+    refresh: 'Actualizar',
+    share: 'Compartir',
+    
+    // Error messages
+    error: 'Error',
+    networkError: 'Error de red. Por favor intenta de nuevo.',
+    locationError: 'No se puede obtener la ubicación',
+    tryAgain: 'Intentar de Nuevo',
+  },
+  
   fr: {
     // App name and tagline
     appName: 'MigrAid',
@@ -98,9 +180,13 @@ export const strings = {
     welcome: 'Bienvenue sur MigrAid',
     welcomeMessage: 'Trouvez des ressources en toute sécurité et anonymement',
     selectLanguage: 'Sélectionnez votre langue',
+    chooseLanguage: 'Choisissez Votre Langue',
+    languageDescription: 'Sélectionnez votre langue préférée pour la meilleure expérience',
+    canChangeLanguage: 'Vous pouvez changer votre langue à tout moment dans les paramètres',
     anonymousMode: 'Mode Anonyme',
     anonymousModeDesc: 'Naviguez sans fournir d\'informations personnelles',
     getStarted: 'Commencer',
+    continue: 'Continuer',
     
     // Navigation
     home: 'Accueil',
@@ -171,9 +257,13 @@ export const strings = {
     welcome: 'Maraba da MigrAid',
     welcomeMessage: 'Nemo albarkatu cikin aminci da boye-boye',
     selectLanguage: 'Zabar yarenka',
+    chooseLanguage: 'Zabar Yarenka',
+    languageDescription: 'Zabar yaren da kake so don mafi kyawun gogewa',
+    canChangeLanguage: 'Kana iya canza yarenka koyaushe a cikin saitunan',
     anonymousMode: 'Yanayin Boye',
     anonymousModeDesc: 'Yi amfani ba tare da bayar da bayanin sirri ba',
     getStarted: 'Fara',
+    continue: 'Ci gaba',
     
     // Navigation
     home: 'Gida',
@@ -201,9 +291,13 @@ export const strings = {
     welcome: 'Akwaaba wo MigrAid',
     welcomeMessage: 'Hwehwɛ mmoa ahorow wɔ ahotɔso ne ahintasem mu',
     selectLanguage: 'Yi w\'ankasa kasa',
+    chooseLanguage: 'Yi W\'ankasa Kasa',
+    languageDescription: 'Yi kasa a wopɛ no na woanya osuahu pa',
+    canChangeLanguage: 'Wubetumi asesa wo kasa bere biara wɔ nhyehyɛe mu',
     anonymousMode: 'Ahintasem Kwan',
     anonymousModeDesc: 'Di dwuma a womma w\'ankasa nsɛm',
     getStarted: 'Fi Ase',
+    continue: 'Kɔ so',
     
     // Navigation
     home: 'Fie',
