@@ -4,13 +4,13 @@ MigrAid is an AI-powered, privacy-first resource navigator designed to help immi
 
 ---
 
-## 🌍 Project Overview
+## Project Overview
 
 **MigrAid** addresses systemic barriers faced by immigrants, including language gaps, fear of authorities, lack of centralized information, and digital exclusion. The app empowers users to find and report resources safely, with a simple, icon-driven interface and robust privacy features.
 
 ---
 
-## ✨ Features
+## Features
 
 - **Multilingual Onboarding**: Supports English, French, Hausa, and Akan (more languages can be added easily).
 - **Anonymous Mode**: Users can browse and report without providing personal information.
@@ -30,7 +30,7 @@ MigrAid is an AI-powered, privacy-first resource navigator designed to help immi
 
 ---
 
-## 🏗️ Technical Architecture
+## Technical Architecture
 
 - **Frontend**: React Native with Expo SDK 53
 - **Navigation**: React Navigation v7 with Stack and Bottom Tab navigators
@@ -65,7 +65,7 @@ src/
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -123,7 +123,7 @@ src/
 
 ---
 
-## 🧑‍💻 Contributing
+## Contributing
 
 1. Fork the repo and create your branch: `git checkout -b feature/your-feature`
 2. Make your changes and test thoroughly
@@ -141,7 +141,7 @@ src/
 
 ---
 
-## 🛠️ Areas for Improvement
+## Areas for Improvement
 
 ### Backend & Data
 
@@ -183,7 +183,7 @@ src/
 
 ---
 
-## 📦 Build & Deployment
+## Build & Deployment
 
 ### Development Build
 
@@ -224,8 +224,7 @@ eas submit --platform android
 
 ## 📣 Contact & Community
 
-- **Project Owners**: Calvin Andoh, Kofi Osei, Caleb Kwakye, Ebenezer Tseh
-- **Community**: Ghana Boys
+- **Project Owners**: Caleb Kwakye, Calvin Andoh, Kofi Osei, Ebenezer Tseh
 - **Repository**: https://github.com/your-username/MigrAid
 - **Issues**: Report bugs and request features via GitHub Issues
 
