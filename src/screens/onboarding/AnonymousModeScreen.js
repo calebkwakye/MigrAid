@@ -81,7 +81,7 @@ const AnonymousModeScreen = ({ navigation }) => {
               </View>
 
               <View style={styles.titleContainer}>
-                <Text style={styles.title}>🛡️ Privacy Protection</Text>
+                <Text style={styles.title}> Privacy Protection</Text>
                 <Text style={styles.subtitle}>
                   Your safety is our priority. Choose the protection level that's right for you.
                 </Text>

@@ -116,7 +116,7 @@ const PermissionsScreen = ({ navigation, onCompleteOnboarding }) => {
               </View>
 
               <View style={styles.titleContainer}>
-                <Text style={styles.title}>🎉 Almost Ready!</Text>
+                <Text style={styles.title}> Almost Ready!</Text>
                 <Text style={styles.subtitle}>
                   Enable optional features to enhance your MigrAid experience while keeping you safe.
                 </Text>
@@ -204,7 +204,7 @@ const PermissionsScreen = ({ navigation, onCompleteOnboarding }) => {
               />
               
               <SafeButton
-                title="🚀 Start Using MigrAid"
+                title=" Start Using MigrAid"
                 onPress={handleComplete}
                 variant="primary"
                 style={styles.completeButton}
