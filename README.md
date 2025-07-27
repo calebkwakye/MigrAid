@@ -111,7 +111,7 @@ src/
 
 ---
 
-## 📱 Usage
+## Usage
 
 - **Language Selection**: Choose your preferred language on first launch
 - **Onboarding**: Learn about the app's features and choose anonymous mode if desired
@@ -214,7 +214,7 @@ eas submit --platform android
 
 ---
 
-## 📱 App Store Information
+## App Store Information
 
 - **Bundle ID (iOS)**: com.anonymous.MigrAid
 - **Package Name (Android)**: com.anonymous.MigrAid
@@ -222,7 +222,7 @@ eas submit --platform android
 
 ---
 
-## 📣 Contact & Community
+## Contact
 
 - **Project Owners**: Caleb Kwakye, Calvin Andoh, Kofi Osei, Ebenezer Tseh
 - **Repository**: https://github.com/your-username/MigrAid
