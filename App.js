@@ -38,6 +38,16 @@ export default function App() {
     }
   };
 
+  // Function to complete onboarding from child components
+  const completeOnboarding = async () => {
+    try {
+      await storageService.setOnboardingComplete(true);
+      setIsOnboardingComplete(true);
+    } catch (error) {
+      console.warn('Error completing onboarding:', error);
+    }
+  };
+
   if (isLoading) {
     return (
       <View style={{ 
@@ -54,7 +64,10 @@ export default function App() {
   return (
     <>
       <StatusBar style="dark" backgroundColor={Colors.background} />
-      <AppNavigator isOnboardingComplete={isOnboardingComplete} />
+      <AppNavigator 
+        isOnboardingComplete={isOnboardingComplete} 
+        onCompleteOnboarding={completeOnboarding}
+      />
     </>
   );
 }

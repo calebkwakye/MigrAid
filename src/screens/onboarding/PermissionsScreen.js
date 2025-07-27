@@ -9,16 +9,22 @@ import {
   SafeAreaView,
   ScrollView,
   Alert,
+  Image,
+  Dimensions,
+  StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import GradientView, { GradientPresets } from '../../components/common/GradientView';
 
 import SafeButton from '../../components/common/SafeButton';
-import { Colors, Typography, Spacing, BorderRadius, CommonStyles } from '../../constants/theme';
+import { Colors, Typography, Spacing, BorderRadius, Shadows, CommonStyles } from '../../constants/theme';
 import { getString } from '../../constants/strings';
 import { storageService } from '../../services/storage';
 import { locationService } from '../../services/location';
 
-const PermissionsScreen = ({ navigation }) => {
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
+const PermissionsScreen = ({ navigation, onCompleteOnboarding }) => {
   const [language, setLanguage] = useState('en');
   const [locationPermission, setLocationPermission] = useState(false);
   const [isRequestingLocation, setIsRequestingLocation] = useState(false);
@@ -49,20 +55,14 @@ const PermissionsScreen = ({ navigation }) => {
       setLocationPermission(result.granted);
       
       if (result.granted) {
-        Alert.alert(
-          'Location Access Granted',
-          'Your location will be anonymized to protect your privacy while helping you find nearby resources.',
-          [{ text: 'OK' }]
-        );
-      } else {
-        Alert.alert(
-          'Location Access Denied',
-          'You can still use MigrAid without location access. You can enable it later in settings.',
-          [{ text: 'OK' }]
-        );
+        await storageService.setLocationPermissions(result);
       }
     } catch (error) {
       console.warn('Error requesting location permission:', error);
+      Alert.alert(
+        'Permission Error',
+        'Unable to request location permission. You can enable it later in Settings.'
+      );
     } finally {
       setIsRequestingLocation(false);
     }
@@ -70,8 +70,10 @@ const PermissionsScreen = ({ navigation }) => {
 
   const handleComplete = async () => {
     try {
-      await storageService.setOnboardingComplete(true);
-      // Navigation will be handled by App.js re-render
+      await storageService.updateUsageAnalytics('onboarding_completed');
+      if (onCompleteOnboarding) {
+        onCompleteOnboarding();
+      }
     } catch (error) {
       console.warn('Error completing onboarding:', error);
     }
@@ -81,258 +83,361 @@ const PermissionsScreen = ({ navigation }) => {
     navigation.goBack();
   };
 
-  const permissions = [
-    {
-      id: 'location',
-      icon: 'location-outline',
-      title: 'Location Access',
-      description: 'Find nearby resources and services',
-      privacy: 'Your location is anonymized for privacy',
-      granted: locationPermission,
-      required: false,
-      action: handleLocationPermission,
-      loading: isRequestingLocation,
-    },
-  ];
-
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content}>
-        {/* Progress Indicator */}
-        <View style={styles.progressContainer}>
-          <View style={styles.progressBar}>
-            <View style={[styles.progressStep, styles.progressStepComplete]} />
-            <View style={[styles.progressStep, styles.progressStepComplete]} />
-            <View style={[styles.progressStep, styles.progressStepActive]} />
-          </View>
-          <Text style={styles.progressText}>Step 3 of 3</Text>
-        </View>
-
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.iconContainer}>
-            <Ionicons name="settings-outline" size={64} color={Colors.info} />
-          </View>
-          <Text style={styles.title}>Permission Setup</Text>
-          <Text style={styles.subtitle}>
-            Enable features to enhance your experience while maintaining privacy
-          </Text>
-        </View>
-
-        {/* Permissions List */}
-        <View style={styles.permissionsSection}>
-          {permissions.map((permission) => (
-            <View key={permission.id} style={styles.permissionCard}>
-              <View style={styles.permissionHeader}>
-                <View style={styles.permissionIcon}>
-                  <Ionicons name={permission.icon} size={24} color={Colors.primary} />
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#00D68F" />
+      <GradientView {...GradientPresets.secondary} style={styles.backgroundGradient}>
+        <SafeAreaView style={styles.safeContainer}>
+          <ScrollView 
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Header Section */}
+            <View style={styles.headerSection}>
+              <View style={styles.progressContainer}>
+                <View style={styles.progressBar}>
+                  <View style={[styles.progressDot, styles.progressComplete]} />
+                  <View style={styles.progressLine} />
+                  <View style={[styles.progressDot, styles.progressComplete]} />
+                  <View style={styles.progressLine} />
+                  <View style={[styles.progressDot, styles.progressActive]} />
                 </View>
-                <View style={styles.permissionInfo}>
-                  <Text style={styles.permissionTitle}>{permission.title}</Text>
-                  <Text style={styles.permissionDescription}>{permission.description}</Text>
-                  <Text style={styles.permissionPrivacy}>{permission.privacy}</Text>
-                </View>
-                <View style={styles.permissionStatus}>
-                  {permission.granted ? (
-                    <Ionicons name="checkmark-circle" size={24} color={Colors.secondary} />
-                  ) : (
-                    <Ionicons name="ellipse-outline" size={24} color={Colors.border} />
-                  )}
+                <Text style={styles.progressText}>3 of 3</Text>
+              </View>
+
+              <View style={styles.logoContainer}>
+                <View style={styles.logoGlow}>
+                  <Image 
+                    source={require('../../../assets/migraid-logo.png')}
+                    style={styles.logoImage}
+                    resizeMode="contain"
+                  />
                 </View>
               </View>
+
+              <View style={styles.titleContainer}>
+                <Text style={styles.title}>🎉 Almost Ready!</Text>
+                <Text style={styles.subtitle}>
+                  Enable optional features to enhance your MigrAid experience while keeping you safe.
+                </Text>
+              </View>
+            </View>
+
+            {/* Permissions Section */}
+            <View style={styles.permissionsSection}>
+              {/* Location Permission Card */}
+              <View style={[styles.permissionCard, locationPermission && styles.enabledCard]}>
+                <View style={styles.cardHeader}>
+                  <View style={styles.permissionIconContainer}>
+                    <Ionicons 
+                      name={locationPermission ? "location" : "location-outline"} 
+                      size={32} 
+                      color={locationPermission ? "#00D68F" : "#0F7FFF"} 
+                    />
+                  </View>
+                  {locationPermission && (
+                    <View style={styles.enabledBadge}>
+                      <Ionicons name="checkmark-circle" size={16} color="#FFFFFF" />
+                      <Text style={styles.enabledText}>ENABLED</Text>
+                    </View>
+                  )}
+                </View>
+                
+                <Text style={styles.permissionTitle}>Location Access</Text>
+                <Text style={styles.permissionDescription}>
+                  Find nearby resources and services to help you when you need them most.
+                </Text>
+                
+                <View style={styles.privacyNote}>
+                  <Ionicons name="shield-checkmark" size={16} color="#00D68F" />
+                  <Text style={styles.privacyText}>
+                    Your location is anonymized and never shared with third parties
+                  </Text>
+                </View>
+
+                <SafeButton
+                  title={locationPermission ? "✓ Location Enabled" : "Enable Location"}
+                  onPress={handleLocationPermission}
+                  variant={locationPermission ? "secondary" : "primary"}
+                  loading={isRequestingLocation}
+                  disabled={locationPermission}
+                  fullWidth
+                  style={styles.permissionButton}
+                />
+              </View>
+
+              {/* Privacy Summary Card */}
+              <View style={styles.privacySummaryCard}>
+                <View style={styles.summaryHeader}>
+                  <Ionicons name="shield-checkmark" size={28} color="#00D68F" />
+                  <Text style={styles.summaryTitle}>Your Privacy is Protected</Text>
+                </View>
+                
+                <View style={styles.privacyFeatures}>
+                  <View style={styles.privacyFeature}>
+                    <Ionicons name="checkmark-circle" size={18} color="#00D68F" />
+                    <Text style={styles.privacyFeatureText}>Anonymous by default</Text>
+                  </View>
+                  <View style={styles.privacyFeature}>
+                    <Ionicons name="checkmark-circle" size={18} color="#00D68F" />
+                    <Text style={styles.privacyFeatureText}>No data collection</Text>
+                  </View>
+                  <View style={styles.privacyFeature}>
+                    <Ionicons name="checkmark-circle" size={18} color="#00D68F" />
+                    <Text style={styles.privacyFeatureText}>Local storage only</Text>
+                  </View>
+                  <View style={styles.privacyFeature}>
+                    <Ionicons name="checkmark-circle" size={18} color="#00D68F" />
+                    <Text style={styles.privacyFeatureText}>Complete encryption</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+
+            {/* Navigation */}
+            <View style={styles.navigationSection}>
+              <SafeButton
+                title="← Back"
+                onPress={handleBack}
+                variant="outline"
+                style={styles.backButton}
+              />
               
               <SafeButton
-                title={permission.granted ? 'Granted' : 'Enable'}
-                onPress={permission.action}
-                variant={permission.granted ? 'secondary' : 'outline'}
-                size="sm"
-                disabled={permission.granted}
-                loading={permission.loading}
-                style={styles.permissionButton}
+                title="🚀 Start Using MigrAid"
+                onPress={handleComplete}
+                variant="primary"
+                style={styles.completeButton}
               />
             </View>
-          ))}
-        </View>
-
-        {/* Privacy Notice */}
-        <View style={styles.privacyNotice}>
-          <Ionicons name="shield-checkmark" size={24} color={Colors.secure} />
-          <View style={styles.privacyContent}>
-            <Text style={styles.privacyTitle}>Privacy Protected</Text>
-            <Text style={styles.privacyText}>
-              • All permissions are optional{'\n'}
-              • Your data stays on your device{'\n'}
-              • Location data is anonymized{'\n'}
-              • Change settings anytime
-            </Text>
-          </View>
-        </View>
-
-        {/* Actions */}
-        <View style={styles.actions}>
-          <SafeButton
-            title="Get Started"
-            onPress={handleComplete}
-            variant="primary"
-            size="lg"
-            fullWidth
-            style={styles.completeButton}
-          />
-          
-          <SafeButton
-            title="Back"
-            onPress={handleBack}
-            variant="ghost"
-            fullWidth
-            style={styles.backButton}
-          />
-        </View>
-
-        {/* Skip Notice */}
-        <View style={styles.skipNotice}>
-          <Text style={styles.skipText}>
-            You can enable or change these permissions anytime in the Profile tab
-          </Text>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+          </ScrollView>
+        </SafeAreaView>
+      </GradientView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
-  content: {
-    padding: Spacing.lg,
-    paddingTop: Spacing.xl,
+  backgroundGradient: {
+    flex: 1,
+  },
+  safeContainer: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+  },
+  headerSection: {
+    alignItems: 'center',
+    paddingTop: 20,
+    paddingBottom: 40,
   },
   progressContainer: {
     alignItems: 'center',
-    marginBottom: Spacing.xl,
+    marginBottom: 30,
   },
   progressBar: {
     flexDirection: 'row',
-    gap: Spacing.xs,
-    marginBottom: Spacing.sm,
+    alignItems: 'center',
+    marginBottom: 8,
   },
-  progressStep: {
-    width: 60,
-    height: 4,
-    backgroundColor: Colors.border,
-    borderRadius: BorderRadius.sm,
+  progressDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
   },
-  progressStepActive: {
-    backgroundColor: Colors.primary,
+  progressComplete: {
+    backgroundColor: '#FFFFFF',
   },
-  progressStepComplete: {
-    backgroundColor: Colors.secondary,
+  progressActive: {
+    backgroundColor: '#FFB800',
+    shadowColor: '#FFB800',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+  },
+  progressLine: {
+    width: 40,
+    height: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    marginHorizontal: 8,
   },
   progressText: {
-    ...CommonStyles.caption,
-    color: Colors.textSecondary,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    opacity: 0.9,
   },
-  header: {
+  logoContainer: {
     alignItems: 'center',
-    marginBottom: Spacing.xl,
+    marginBottom: 30,
   },
-  iconContainer: {
-    marginBottom: Spacing.lg,
+  logoGlow: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 20,
+  },
+  logoImage: {
+    width: 50,
+    height: 50,
+  },
+  titleContainer: {
+    alignItems: 'center',
+    paddingHorizontal: 20,
   },
   title: {
-    ...CommonStyles.heading1,
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#FFFFFF',
     textAlign: 'center',
-    marginBottom: Spacing.sm,
+    marginBottom: 12,
   },
   subtitle: {
-    ...CommonStyles.bodyLarge,
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#FFFFFF',
     textAlign: 'center',
-    color: Colors.textSecondary,
+    opacity: 0.9,
+    lineHeight: 24,
   },
   permissionsSection: {
-    marginBottom: Spacing.xl,
-    gap: Spacing.base,
+    flex: 1,
+    gap: 20,
   },
   permissionCard: {
-    ...CommonStyles.card,
-    padding: Spacing.lg,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 24,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 10,
+    borderWidth: 2,
+    borderColor: 'transparent',
   },
-  permissionHeader: {
+  enabledCard: {
+    borderColor: '#00D68F',
+    shadowColor: '#00D68F',
+    shadowOpacity: 0.2,
+  },
+  cardHeader: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: Spacing.base,
+    marginBottom: 16,
   },
-  permissionIcon: {
-    marginRight: Spacing.base,
-    marginTop: Spacing.xs,
+  permissionIconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(15, 127, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  permissionInfo: {
-    flex: 1,
+  enabledBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#00D68F',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 4,
+  },
+  enabledText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
   permissionTitle: {
-    ...CommonStyles.bodyLarge,
-    fontWeight: Typography.fontWeight.semiBold,
-    marginBottom: Spacing.xs,
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#1A202C',
+    marginBottom: 8,
   },
   permissionDescription: {
-    ...CommonStyles.body,
-    color: Colors.textSecondary,
-    marginBottom: Spacing.xs,
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#4A5568',
+    lineHeight: 24,
+    marginBottom: 16,
   },
-  permissionPrivacy: {
-    ...CommonStyles.bodySmall,
-    color: Colors.secure,
-    fontStyle: 'italic',
-  },
-  permissionStatus: {
-    marginLeft: Spacing.sm,
-    marginTop: Spacing.xs,
-  },
-  permissionButton: {
-    alignSelf: 'flex-start',
-  },
-  privacyNotice: {
+  privacyNote: {
     flexDirection: 'row',
-    padding: Spacing.lg,
-    backgroundColor: Colors.secondaryBackground,
-    borderRadius: BorderRadius.lg,
-    borderLeftWidth: 4,
-    borderLeftColor: Colors.secondary,
-    marginBottom: Spacing.xl,
-  },
-  privacyContent: {
-    flex: 1,
-    marginLeft: Spacing.base,
-  },
-  privacyTitle: {
-    ...CommonStyles.bodyLarge,
-    fontWeight: Typography.fontWeight.semiBold,
-    color: Colors.secondary,
-    marginBottom: Spacing.xs,
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 214, 143, 0.1)',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 20,
+    gap: 8,
   },
   privacyText: {
-    ...CommonStyles.bodySmall,
-    color: Colors.textSecondary,
-    lineHeight: Typography.lineHeight.relaxed * Typography.fontSize.sm,
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#00D68F',
+    flex: 1,
+    lineHeight: 18,
   },
-  actions: {
-    marginBottom: Spacing.lg,
+  permissionButton: {
+    marginTop: 8,
   },
-  completeButton: {
-    marginBottom: Spacing.base,
+  privacySummaryCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 20,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 214, 143, 0.2)',
+  },
+  summaryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    gap: 12,
+  },
+  summaryTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#1A202C',
+  },
+  privacyFeatures: {
+    gap: 12,
+  },
+  privacyFeature: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  privacyFeatureText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4A5568',
+  },
+  navigationSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 30,
+    gap: 16,
   },
   backButton: {
-    marginBottom: Spacing.base,
+    flex: 1,
+    borderColor: '#FFFFFF',
   },
-  skipNotice: {
-    alignItems: 'center',
-    paddingTop: Spacing.base,
-  },
-  skipText: {
-    ...CommonStyles.caption,
-    textAlign: 'center',
-    color: Colors.textLight,
+  completeButton: {
+    flex: 2,
   },
 });
 

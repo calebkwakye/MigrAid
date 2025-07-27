@@ -63,9 +63,11 @@ const CreateReportScreen = ({ navigation }) => {
 
   useEffect(() => {
     loadLanguage();
-    setupBackHandler();
+    
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+    
     return () => {
-      BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
+      backHandler.remove();
     };
   }, []);
 
@@ -74,9 +76,7 @@ const CreateReportScreen = ({ navigation }) => {
     setLanguage(userLanguage);
   };
 
-  const setupBackHandler = () => {
-    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
-  };
+
 
   const handleBackPress = () => {
     if (isDirty) {
@@ -248,14 +248,27 @@ const CreateReportScreen = ({ navigation }) => {
   };
 
   const makeEmergencyCall = (number) => {
-    if (number.includes('741741')) {
+    if (number.includes('741741') || number.includes('Text HOME')) {
       Alert.alert(
         'Crisis Text Line',
-        'Text HOME to 741741 for mental health crisis support',
-        [{ text: 'OK' }]
+        'Send a text message "HOME" to 741741 for mental health crisis support?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { 
+            text: 'Send Text', 
+            onPress: () => Linking.openURL('sms:741741&body=HOME') 
+          }
+        ]
       );
     } else {
-      Linking.openURL(`tel:${number}`);
+      Alert.alert(
+        'Emergency Call',
+        `Calling ${number}`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Call', onPress: () => Linking.openURL(`tel:${number}`) }
+        ]
+      );
     }
   };
 

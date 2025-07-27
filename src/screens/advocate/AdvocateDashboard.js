@@ -15,7 +15,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 
 import SafeButton from '../../components/common/SafeButton';
-import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../../constants/theme';
+import { Colors, Typography, Spacing, BorderRadius, Shadows, CommonStyles } from '../../constants/theme';
+import GradientView, { GradientPresets } from '../../components/common/GradientView';
 import { storageService } from '../../services/storage';
 import { mockResources } from '../../data/mockResources';
 import { mockIceReports } from '../../data/mockIceReports';
@@ -52,11 +53,11 @@ const AdvocateDashboard = ({ navigation }) => {
         setSession(advocateSession);
       } else {
         // Session expired, redirect to login
-        handleLogout();
+        navigation.navigate('AdvocateLogin');
       }
     } catch (error) {
       console.warn('Error loading session:', error);
-      handleLogout();
+      navigation.navigate('AdvocateLogin');
     }
   };
 
@@ -148,22 +149,15 @@ const AdvocateDashboard = ({ navigation }) => {
     setIsRefreshing(false);
   };
 
-  const handleLogout = () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out of the advocate dashboard?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Sign Out',
-          style: 'destructive',
-          onPress: async () => {
-            await storageService.removeItem('@migraid:advocateSession');
-            navigation.replace('AdvocateLogin');
-          }
-        }
-      ]
-    );
+  const handleBackToApp = () => {
+    // Navigate to the main app's home screen
+    navigation.goBack(); // Dismiss the modal first
+    setTimeout(() => {
+      navigation.navigate('Main', {
+        screen: 'Home',
+        params: { screen: 'HomeMain' }
+      });
+    }, 100);
   };
 
   const getRelativeTime = (timestamp) => {
@@ -181,15 +175,15 @@ const AdvocateDashboard = ({ navigation }) => {
     return `${diffDays}d ago`;
   };
 
-  const renderStatCard = (title, value, subtitle, icon, color = Colors.primary) => (
-    <View style={[styles.statCard, { borderTopColor: color }]}>
-      <View style={styles.statHeader}>
-        <Ionicons name={icon} size={24} color={color} />
-        <Text style={[styles.statValue, { color }]}>{value}</Text>
+  const renderStatCard = (title, value, subtitle, icon, gradientPreset = GradientPresets.primary) => (
+    <GradientView {...gradientPreset} style={styles.statCard}>
+      <View style={styles.statContent}>
+        <Ionicons name={icon} size={32} color={Colors.textOnPrimary} />
+        <Text style={styles.statValue}>{value}</Text>
+        <Text style={styles.statTitle}>{title}</Text>
+        <Text style={styles.statSubtitle}>{subtitle}</Text>
       </View>
-      <Text style={styles.statTitle}>{title}</Text>
-      <Text style={styles.statSubtitle}>{subtitle}</Text>
-    </View>
+    </GradientView>
   );
 
   const renderActivityItem = (item) => (
@@ -257,49 +251,52 @@ const AdvocateDashboard = ({ navigation }) => {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerContent}>
+            <View style={styles.headerActions}>
+              <TouchableOpacity style={styles.homeButton} onPress={handleBackToApp}>
+                <Ionicons name="home-outline" size={20} color={Colors.primary} />
+                <Text style={styles.homeButtonText}>Back to App</Text>
+              </TouchableOpacity>
+            </View>
             <View style={styles.headerInfo}>
               <Text style={styles.headerTitle}>Advocate Dashboard</Text>
               <Text style={styles.headerSubtitle}>
                 Welcome back, {session?.username?.split('@')[0] || 'Advocate'}
               </Text>
             </View>
-            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-              <Ionicons name="log-out-outline" size={24} color={Colors.danger} />
-            </TouchableOpacity>
           </View>
         </View>
 
         {/* Quick Stats */}
         <View style={styles.statsSection}>
-          <Text style={styles.sectionTitle}>Quick Statistics</Text>
+          <Text style={styles.sectionTitle}>Dashboard Overview</Text>
           <View style={styles.statsGrid}>
             {renderStatCard(
               'Total Resources',
               stats.totalResources,
               'Community resources',
-              'library-outline',
-              Colors.primary
+              'library',
+              GradientPresets.primary
             )}
             {renderStatCard(
               'Pending Reports',
               stats.pendingReports,
               'Need verification',
-              'alert-circle-outline',
-              Colors.warning
+              'alert-circle',
+              GradientPresets.warning
             )}
             {renderStatCard(
               'Verified Resources',
               stats.verifiedResources,
               'Community verified',
-              'checkmark-circle-outline',
-              Colors.success
+              'checkmark-circle',
+              GradientPresets.secondary
             )}
             {renderStatCard(
               'Weekly Users',
               stats.weeklyUsers,
               'Active this week',
-              'people-outline',
-              Colors.info
+              'people',
+              GradientPresets.accent
             )}
           </View>
         </View>
@@ -391,8 +388,11 @@ const styles = StyleSheet.create({
   },
   headerContent: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: Spacing.base,
+  },
+  headerActions: {
+    minWidth: 80,
   },
   headerInfo: {
     flex: 1,
@@ -407,11 +407,20 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.base,
     color: Colors.textSecondary,
   },
-  logoutButton: {
+  homeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: Spacing.sm,
-    borderRadius: BorderRadius.round,
-    backgroundColor: Colors.dangerBackground,
+    borderRadius: BorderRadius.base,
+    backgroundColor: Colors.primaryBackground,
+    gap: Spacing.xs,
   },
+  homeButtonText: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.primary,
+    fontWeight: Typography.fontWeight.medium,
+  },
+
   sectionTitle: {
     fontSize: Typography.fontSize.lg,
     fontWeight: Typography.fontWeight.bold,
@@ -428,31 +437,38 @@ const styles = StyleSheet.create({
   },
   statCard: {
     width: '48%',
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.base,
-    padding: Spacing.base,
-    borderTopWidth: 3,
-    ...Shadows.sm,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.lg,
+    ...Shadows.lg,
+    overflow: 'hidden',
+    minHeight: 130,
   },
-  statHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  statContent: {
     alignItems: 'center',
-    marginBottom: Spacing.sm,
+    justifyContent: 'center',
   },
   statValue: {
-    fontSize: Typography.fontSize['2xl'],
-    fontWeight: Typography.fontWeight.bold,
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    lineHeight: 28,
+    marginVertical: 8,
   },
   statTitle: {
-    fontSize: Typography.fontSize.base,
-    fontWeight: Typography.fontWeight.medium,
-    color: Colors.text,
-    marginBottom: Spacing.xs,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    lineHeight: 20,
+    marginBottom: 4,
+    textAlign: 'center',
   },
   statSubtitle: {
-    fontSize: Typography.fontSize.sm,
-    color: Colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#FFFFFF',
+    lineHeight: 16,
+    textAlign: 'center',
+    opacity: 0.9,
   },
   toolsSection: {
     padding: Spacing.base,

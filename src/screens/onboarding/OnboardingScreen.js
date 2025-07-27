@@ -8,6 +8,7 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -42,9 +43,15 @@ const OnboardingScreen = ({ navigation }) => {
       <ScrollView contentContainerStyle={styles.content}>
         {/* Header */}
         <View style={styles.header}>
+          <Image 
+            source={require('../../../assets/migraid-logo.png')}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
           <Text style={styles.appName}>MigrAid</Text>
-          <Text style={styles.tagline}>
-            {getString('tagline', selectedLanguage)}
+          <Text style={styles.tagline}>Safety • Privacy • Community</Text>
+          <Text style={styles.subtitle}>
+            Privacy-first resource navigation for immigrant communities
           </Text>
         </View>
 
@@ -134,16 +141,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: Spacing.xl,
   },
+  logoImage: {
+    width: 100,
+    height: 100,
+    marginBottom: Spacing.base,
+  },
   appName: {
     fontSize: Typography.fontSize['4xl'],
     fontWeight: Typography.fontWeight.bold,
-    color: Colors.primary,
+    color: Colors.text,
     marginBottom: Spacing.xs,
   },
   tagline: {
+    fontSize: Typography.fontSize.base,
+    color: Colors.primary,
+    textAlign: 'center',
+    fontWeight: Typography.fontWeight.medium,
+    letterSpacing: 1,
+    marginBottom: Spacing.sm,
+  },
+  subtitle: {
     fontSize: Typography.fontSize.lg,
     color: Colors.textSecondary,
     textAlign: 'center',
+    lineHeight: Typography.lineHeight.relaxed * Typography.fontSize.lg,
+    paddingHorizontal: Spacing.base,
   },
   section: {
     marginBottom: Spacing.xl,

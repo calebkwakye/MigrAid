@@ -6,6 +6,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Import main app screens
 import HomeScreen from '../screens/home/HomeScreen';
@@ -34,7 +35,7 @@ const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 // Onboarding Stack Navigator
-const OnboardingStack = () => {
+const OnboardingStack = ({ onCompleteOnboarding }) => {
   return (
     <Stack.Navigator
       screenOptions={{
@@ -65,9 +66,15 @@ const OnboardingStack = () => {
         component={AnonymousModeScreen}
       />
       <Stack.Screen 
-        name="Permissions" 
-        component={PermissionsScreen}
-      />
+        name="Permissions"
+      >
+        {(props) => (
+          <PermissionsScreen 
+            {...props} 
+            onCompleteOnboarding={onCompleteOnboarding} 
+          />
+        )}
+      </Stack.Screen>
     </Stack.Navigator>
   );
 };
@@ -97,7 +104,9 @@ const HomeStack = () => {
           headerStyle: {
             backgroundColor: Colors.primary,
             ...Shadows.sm,
-          }
+          },
+          headerLeft: () => null,
+          headerRight: () => null,
         }}
       />
     </Stack.Navigator>
@@ -280,6 +289,8 @@ const AdvocateStack = () => {
 
 // Bottom Tab Navigator
 const TabNavigator = () => {
+  const insets = useSafeAreaInsets();
+  
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -303,19 +314,30 @@ const TabNavigator = () => {
         tabBarStyle: {
           backgroundColor: Colors.background,
           borderTopColor: Colors.border,
+          borderTopWidth: 1,
           paddingTop: Spacing.sm,
-          paddingBottom: Spacing.sm,
-          height: 60,
+          paddingBottom: Math.max(insets.bottom, Spacing.sm),
+          paddingLeft: insets.left,
+          paddingRight: insets.right,
+          height: 60 + Math.max(insets.bottom, Spacing.sm),
           ...Shadows.sm,
         },
         tabBarLabelStyle: {
           fontSize: Typography.fontSize.xs,
           fontFamily: Typography.fontFamily.medium,
           fontWeight: Typography.fontWeight.medium,
+          marginBottom: 2,
+        },
+        tabBarItemStyle: {
+          paddingTop: 6,
+          paddingBottom: 2,
         },
         headerShown: false, // We handle headers in individual stack navigators
         tabBarHideOnKeyboard: true, // Hide tab bar when keyboard is open
       })}
+      safeAreaInsets={{
+        bottom: 0, // This ensures the tab bar extends to the bottom edge
+      }}
     >
       <Tab.Screen 
         name="Home" 
@@ -356,7 +378,7 @@ const TabNavigator = () => {
 // Main Root Stack Navigator
 const RootStack = createStackNavigator();
 
-const AppNavigator = ({ isOnboardingComplete = false }) => {
+const AppNavigator = ({ isOnboardingComplete = false, onCompleteOnboarding }) => {
   return (
     <NavigationContainer>
       <RootStack.Navigator
@@ -372,12 +394,18 @@ const AppNavigator = ({ isOnboardingComplete = false }) => {
       >
         {!isOnboardingComplete ? (
           <RootStack.Screen 
-            name="Onboarding" 
-            component={OnboardingStack}
+            name="Onboarding"
             options={{
               animationTypeForReplace: 'pop',
             }}
-          />
+          >
+            {(props) => (
+              <OnboardingStack 
+                {...props} 
+                onCompleteOnboarding={onCompleteOnboarding} 
+              />
+            )}
+          </RootStack.Screen>
         ) : (
           <>
             <RootStack.Screen 

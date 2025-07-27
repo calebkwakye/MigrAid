@@ -11,13 +11,15 @@ import {
   Alert,
   Linking,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import GradientView, { GradientPresets } from '../../components/common/GradientView';
 
 // Import components and services
 import SafeButton from '../../components/common/SafeButton';
 import CustomInput from '../../components/common/CustomInput';
-import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../../constants/theme';
+import { Colors, Typography, Spacing, BorderRadius, Shadows, CommonStyles } from '../../constants/theme';
 import { strings, getString } from '../../constants/strings';
 import { storageService } from '../../services/storage';
 import { mockResources, RESOURCE_CATEGORIES, getCategoryStats, getResourcesByCategory } from '../../data/mockResources';
@@ -63,6 +65,7 @@ const HomeScreen = ({ navigation }) => {
       
       // Load resource category statistics
       const stats = getCategoryStats();
+      console.log('Category Stats:', stats); // Debug log
       setCategoryStats(stats || {});
       
       // Load recent/featured resources (top 3 from each category)
@@ -75,7 +78,12 @@ const HomeScreen = ({ navigation }) => {
       setActiveReports(0);
       setCriticalReports(0);
       setRecentReports(0);
-      setCategoryStats({});
+      setCategoryStats({
+        [RESOURCE_CATEGORIES.LEGAL]: 12,
+        [RESOURCE_CATEGORIES.HEALTHCARE]: 15,
+        [RESOURCE_CATEGORIES.FOOD]: 8,
+        [RESOURCE_CATEGORIES.SHELTER]: 10,
+      });
       setRecentResources([]);
     }
   };
@@ -104,6 +112,27 @@ const HomeScreen = ({ navigation }) => {
   };
 
   const makeEmergencyCall = (number) => {
+    // Handle Crisis Text Line specially
+    if (number.includes('741741') || number.includes('Text HOME')) {
+      Alert.alert(
+        'Crisis Text Line',
+        'Send a text message "HOME" to 741741 for mental health crisis support?',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Send Text',
+            onPress: () => Linking.openURL('sms:741741&body=HOME'),
+            style: 'default',
+          },
+        ]
+      );
+      return;
+    }
+
+    // Handle regular phone calls
     Alert.alert(
       getString('emergencyCall', language) || 'Emergency Call',
       `${getString('calling', language) || 'Calling'} ${number}`,
@@ -211,14 +240,21 @@ const HomeScreen = ({ navigation }) => {
         )}
 
         {/* Welcome Section */}
-        <View style={styles.welcomeSection}>
-          <Text style={styles.welcomeTitle}>
-            {getString('welcome', language)}
-          </Text>
-          <Text style={styles.welcomeSubtitle}>
-            {getString('safetyFirst', language)}
-          </Text>
-        </View>
+        <GradientView 
+          {...GradientPresets.primary}
+          style={styles.welcomeSection}
+        >
+          <View style={styles.logoHeader}>
+            <View style={styles.welcomeTextContainer}>
+              <Text style={styles.welcomeTitle}>
+                Welcome to MigrAid
+              </Text>
+              <Text style={styles.welcomeSubtitle}>
+                Your safety and privacy come first. Find resources, stay informed, and connect with your community.
+              </Text>
+            </View>
+          </View>
+        </GradientView>
 
         {/* Quick Search Bar */}
         <View style={styles.searchSection}>
@@ -269,43 +305,49 @@ const HomeScreen = ({ navigation }) => {
         )}
 
         {/* Quick Stats */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{Object.values(categoryStats).reduce((sum, count) => sum + count, 0)}</Text>
-            <Text style={styles.statLabel}>
-              {getString('resources', language)}
-            </Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={[styles.statNumber, { color: activeReports > 0 ? Colors.warning : Colors.secondary }]}>
-              {activeReports}
-            </Text>
-            <Text style={styles.statLabel}>
-              {getString('recentReports', language) || 'Active Reports'}
-            </Text>
+        <View style={styles.quickStatsCard}>
+          <Text style={styles.quickStatsTitle}> Community Overview</Text>
+          <View style={styles.statsContainer}>
+            <View style={styles.statItem}>
+              <Text style={styles.quickStatNumber}>50</Text>
+              <Text style={styles.quickStatLabel}>Resources</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={[styles.quickStatNumber, { color: activeReports > 0 ? '#FF6B35' : '#00D68F' }]}>
+                {activeReports}
+              </Text>
+              <Text style={styles.quickStatLabel}>Active Reports</Text>
+            </View>
           </View>
         </View>
 
         {/* Emergency Contacts */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
-            Emergency Contacts
+            🚨 Emergency Contacts
           </Text>
           <View style={styles.emergencyGrid}>
             {emergencyContacts.filter(contact => contact && contact.name && contact.number).map((contact, index) => (
-              <TouchableOpacity
+              <GradientView
                 key={index}
+                {...GradientPresets.danger}
                 style={styles.emergencyCard}
-                onPress={() => makeEmergencyCall(contact.number)}
-                activeOpacity={0.7}
               >
-                <View style={styles.emergencyHeader}>
-                  <Ionicons name={contact.icon || 'call-outline'} size={20} color={Colors.danger} />
-                  <Text style={styles.emergencyName}>{contact.name}</Text>
-                </View>
-                <Text style={styles.emergencyNumber}>{contact.number}</Text>
-                <Text style={styles.emergencyDescription}>{contact.description || ''}</Text>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.emergencyContent}
+                  onPress={() => makeEmergencyCall(contact.number)}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.emergencyHeader}>
+                    <View style={styles.emergencyIconContainer}>
+                      <Ionicons name={contact.icon || 'call'} size={24} color={Colors.textOnPrimary} />
+                    </View>
+                    <Text style={styles.emergencyName}>{contact.name}</Text>
+                  </View>
+                  <Text style={styles.emergencyNumber}>{contact.number}</Text>
+                  <Text style={styles.emergencyDescription}>{contact.description || ''}</Text>
+                </TouchableOpacity>
+              </GradientView>
             ))}
           </View>
         </View>
@@ -451,18 +493,37 @@ const styles = StyleSheet.create({
     minHeight: 32,
   },
   welcomeSection: {
-    marginBottom: Spacing.lg,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.xl,
+    marginBottom: Spacing.xl,
+    ...Shadows.primaryShadow,
+    overflow: 'hidden',
+  },
+  logoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.base,
+  },
+  homeLogoImage: {
+    width: 60,
+    height: 60,
+  },
+  welcomeTextContainer: {
+    flex: 1,
   },
   welcomeTitle: {
-    fontSize: Typography.fontSize['3xl'],
-    fontWeight: Typography.fontWeight.bold,
-    color: Colors.text,
-    marginBottom: Spacing.xs,
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    lineHeight: 28,
+    marginBottom: 16,
   },
   welcomeSubtitle: {
-    fontSize: Typography.fontSize.lg,
-    color: Colors.textSecondary,
-    lineHeight: Typography.lineHeight.relaxed * Typography.fontSize.lg,
+    fontSize: 18,
+    fontWeight: '500',
+    color: '#FFFFFF',
+    lineHeight: 24,
+    opacity: 0.95,
   },
   searchSection: {
     marginBottom: Spacing.lg,
@@ -498,39 +559,83 @@ const styles = StyleSheet.create({
     marginLeft: Spacing.lg + 24, // Icon width + margin
     flex: 1,
   },
+  quickStatsCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 24,
+    shadowColor: '#0F7FFF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: '#E8F4FD',
+  },
+  quickStatsTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1A202C',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: Spacing.lg,
   },
-  statCard: {
+  statItem: {
     alignItems: 'center',
-    backgroundColor: Colors.surface,
-    padding: Spacing.base,
-    borderRadius: BorderRadius.base,
+    justifyContent: 'center',
     minWidth: 100,
-    ...Shadows.sm,
   },
-  statNumber: {
-    fontSize: Typography.fontSize['2xl'],
-    fontWeight: Typography.fontWeight.bold,
-    color: Colors.primary,
-  },
-  statLabel: {
-    fontSize: Typography.fontSize.sm,
-    color: Colors.textSecondary,
+  quickStatNumber: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#0F7FFF',
     textAlign: 'center',
-    marginTop: Spacing.xs,
+    marginBottom: 4,
   },
+  quickStatLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#4A5568',
+    lineHeight: 16,
+    textAlign: 'center',
+  },
+
   section: {
     marginBottom: Spacing.lg,
   },
   sectionTitle: {
-    fontSize: Typography.fontSize.xl,
-    fontWeight: Typography.fontWeight.bold,
+    ...CommonStyles.heading4,
+    marginBottom: Spacing.lg,
     color: Colors.text,
-    marginBottom: Spacing.base,
   },
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.lg,
+  },
+  statCard: {
+    width: '48%',
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.lg,
+    marginBottom: Spacing.base,
+    ...Shadows.lg,
+    overflow: 'hidden',
+  },
+  statContent: {
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    lineHeight: 28,
+    marginVertical: 8,
+  },
+
   sectionHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -546,34 +651,49 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   emergencyCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.base,
-    padding: Spacing.base,
-    borderLeftWidth: 4,
-    borderLeftColor: Colors.danger,
-    ...Shadows.sm,
-    minHeight: 80,
+    borderRadius: BorderRadius.xl,
+    overflow: 'hidden',
+    ...Shadows.lg,
+    marginBottom: Spacing.base,
+  },
+  emergencyContent: {
+    padding: Spacing.lg,
   },
   emergencyHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.xs,
+    marginBottom: Spacing.base,
+  },
+  emergencyIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: Spacing.base,
   },
   emergencyName: {
-    fontSize: Typography.fontSize.base,
-    fontWeight: Typography.fontWeight.semiBold,
-    color: Colors.text,
-    marginLeft: Spacing.sm,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    lineHeight: 20,
+    flex: 1,
   },
   emergencyNumber: {
-    fontSize: Typography.fontSize.lg,
-    fontWeight: Typography.fontWeight.bold,
-    color: Colors.danger,
-    marginBottom: Spacing.xs,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    lineHeight: 18,
+    marginBottom: 8,
+    opacity: 0.9,
   },
   emergencyDescription: {
-    fontSize: Typography.fontSize.sm,
-    color: Colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#FFFFFF',
+    lineHeight: 16,
+    opacity: 0.8,
   },
   categoriesGrid: {
     flexDirection: 'row',

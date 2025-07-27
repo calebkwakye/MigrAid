@@ -6,12 +6,14 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   Alert,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Image,
+  Dimensions,
+  StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -48,8 +50,14 @@ const AdvocateLogin = ({ navigation }) => {
     try {
       const session = await storageService.getItem('@migraid:advocateSession');
       if (session && session.expires > Date.now()) {
-        // Valid session exists, navigate to dashboard
-        navigation.replace('AdvocateDashboard');
+        // Valid session exists, navigate to home page
+        navigation.goBack(); // Dismiss the modal first
+        setTimeout(() => {
+          navigation.navigate('Main', {
+            screen: 'Home',
+            params: { screen: 'HomeMain' }
+          });
+        }, 100);
       }
     } catch (error) {
       console.warn('Error checking session:', error);
@@ -84,11 +92,20 @@ const AdvocateLogin = ({ navigation }) => {
 
         Alert.alert(
           'Login Successful',
-          'Welcome to the MigrAid Advocate Dashboard. You now have access to resource management and community moderation tools.',
+          'Welcome! You are now signed in as an advocate.',
           [
             {
               text: 'Continue',
-              onPress: () => navigation.replace('AdvocateDashboard')
+              onPress: () => {
+                // Navigate to home page
+                navigation.goBack(); // Dismiss the modal first
+                setTimeout(() => {
+                  navigation.navigate('Main', {
+                    screen: 'Home',
+                    params: { screen: 'HomeMain' }
+                  });
+                }, 100);
+              }
             }
           ]
         );
@@ -144,7 +161,9 @@ const AdvocateLogin = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
+      
       <KeyboardAvoidingView 
         style={styles.keyboardContainer}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -153,122 +172,113 @@ const AdvocateLogin = ({ navigation }) => {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          bounces={false}
         >
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => navigation.goBack()}
-            >
-              <Ionicons name="arrow-back" size={24} color={Colors.text} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Logo Section */}
+          {/* Logo Section - Pinned to top */}
           <View style={styles.logoSection}>
             <View style={styles.logoContainer}>
-              <Ionicons name="shield-checkmark" size={48} color={Colors.primary} />
+              <Image 
+                source={require('../../../assets/migraid-logo.png')}
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
+              <Text style={styles.logoTitle}>MigrAid</Text>
+              <Text style={styles.logoSubtitle}>Advocate Portal</Text>
             </View>
-            <Text style={styles.logoTitle}>MigrAid</Text>
-            <Text style={styles.logoSubtitle}>Advocate Dashboard</Text>
           </View>
 
-          {/* Login Form */}
-          <View style={styles.formContainer}>
-            <View style={styles.formHeader}>
-              <Text style={styles.formTitle}>Advocate Login</Text>
-              <Text style={styles.formSubtitle}>
-                Access resource management and community moderation tools
+          {/* Centered Content Area */}
+          <View style={styles.centeredContent}>
+            {/* Login Form */}
+            <View style={styles.formContainer}>
+              <View style={styles.formHeader}>
+                <Text style={styles.formTitle}>Welcome Back</Text>
+                <Text style={styles.formSubtitle}>
+                  Sign in to access resource management and community moderation tools
+                </Text>
+              </View>
+
+              <View style={styles.form}>
+                <CustomInput
+                  label="Username / Email"
+                  placeholder="advocate@organization.org"
+                  value={username}
+                  onChangeText={setUsername}
+                  leftIcon="person-outline"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  style={styles.input}
+                />
+
+                <CustomInput
+                  label="Password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChangeText={setPassword}
+                  leftIcon="lock-closed-outline"
+                  rightIcon={showPassword ? "eye-off-outline" : "eye-outline"}
+                  onRightIconPress={() => setShowPassword(!showPassword)}
+                  secureTextEntry={!showPassword}
+                  style={styles.input}
+                />
+
+                <SafeButton
+                  title={isLoading ? 'Signing In...' : 'Sign In'}
+                  onPress={handleLogin}
+                  variant="primary"
+                  size="lg"
+                  fullWidth
+                  loading={isLoading}
+                  disabled={isLoading || !username.trim() || !password.trim()}
+                  style={styles.loginButton}
+                  icon={<Ionicons name="log-in" size={20} color={Colors.background} />}
+                />
+              </View>
+            </View>
+
+            {/* Action Links */}
+            <View style={styles.actionLinks}>
+              <TouchableOpacity
+                style={styles.actionLink}
+                onPress={handleForgotPassword}
+              >
+                <Text style={styles.actionLinkText}>Forgot Password?</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.actionLink}
+                onPress={handleRequestAccess}
+              >
+                <Text style={styles.actionLinkText}>Request Advocate Access</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Bottom Content */}
+          <View style={styles.bottomContent}>
+            {/* Security Notice */}
+            <View style={styles.securityNotice}>
+              <Ionicons name="shield-outline" size={16} color={Colors.textSecondary} />
+              <Text style={styles.securityText}>
+                Advocate access is restricted to verified community organizations and NGO workers.
               </Text>
             </View>
 
-            <View style={styles.form}>
-              <CustomInput
-                label="Username / Email"
-                placeholder="advocate@organization.org"
-                value={username}
-                onChangeText={setUsername}
-                leftIcon="person-outline"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                style={styles.input}
-              />
-
-              <CustomInput
-                label="Password"
-                placeholder="Enter your password"
-                value={password}
-                onChangeText={setPassword}
-                leftIcon="lock-closed-outline"
-                rightIcon={showPassword ? "eye-off-outline" : "eye-outline"}
-                onRightIconPress={() => setShowPassword(!showPassword)}
-                secureTextEntry={!showPassword}
-                style={styles.input}
-              />
-
-              <SafeButton
-                title={isLoading ? 'Signing In...' : 'Sign In'}
-                onPress={handleLogin}
-                variant="primary"
-                size="lg"
-                fullWidth
-                loading={isLoading}
-                disabled={isLoading || !username.trim() || !password.trim()}
-                style={styles.loginButton}
-                icon={<Ionicons name="log-in" size={20} color={Colors.background} />}
-              />
+            {/* Footer */}
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>
+                By signing in, you agree to follow MigrAid's community guidelines and data protection policies.
+              </Text>
             </View>
-          </View>
-
-          {/* Demo Information */}
-          <View style={styles.demoInfo}>
-            <View style={styles.demoHeader}>
-              <Ionicons name="information-circle" size={20} color={Colors.info} />
-              <Text style={styles.demoTitle}>Demo Access</Text>
-            </View>
-            <Text style={styles.demoText}>
-              Username: advocate@migraid.org{'\n'}
-              Password: community2025
-            </Text>
-          </View>
-
-          {/* Action Links */}
-          <View style={styles.actionLinks}>
-            <TouchableOpacity
-              style={styles.actionLink}
-              onPress={handleForgotPassword}
-            >
-              <Text style={styles.actionLinkText}>Forgot Password?</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.actionLink}
-              onPress={handleRequestAccess}
-            >
-              <Text style={styles.actionLinkText}>Request Advocate Access</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Security Notice */}
-          <View style={styles.securityNotice}>
-            <Ionicons name="shield-outline" size={16} color={Colors.textSecondary} />
-            <Text style={styles.securityText}>
-              Advocate access is restricted to verified community organizations and NGO workers.
-            </Text>
-          </View>
-
-          {/* Footer */}
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>
-              By signing in, you agree to follow MigrAid's community guidelines and data protection policies.
-            </Text>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 };
+
+const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: {
@@ -280,74 +290,75 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    padding: Spacing.base,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    marginBottom: Spacing.lg,
-  },
-  backButton: {
-    padding: Spacing.sm,
-    borderRadius: BorderRadius.round,
-    backgroundColor: Colors.surface,
+    minHeight: screenHeight,
   },
   logoSection: {
     alignItems: 'center',
-    marginBottom: Spacing.xl,
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingBottom: Spacing.lg,
+    backgroundColor: Colors.background,
   },
   logoContainer: {
+    alignItems: 'center',
+  },
+  logoImage: {
     width: 80,
     height: 80,
-    borderRadius: BorderRadius.round,
-    backgroundColor: Colors.primaryBackground,
-    alignItems: 'center',
-    justifyContent: 'center',
     marginBottom: Spacing.base,
-    ...Shadows.md,
   },
   logoTitle: {
-    fontSize: Typography.fontSize['3xl'],
+    fontSize: Typography.fontSize['2xl'],
     fontWeight: Typography.fontWeight.bold,
     color: Colors.text,
     marginBottom: Spacing.xs,
   },
   logoSubtitle: {
-    fontSize: Typography.fontSize.lg,
-    color: Colors.textSecondary,
+    fontSize: Typography.fontSize.base,
+    color: Colors.primary,
     fontWeight: Typography.fontWeight.medium,
+    letterSpacing: 0.5,
+  },
+  centeredContent: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.lg,
   },
   formContainer: {
     backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.xl,
     marginBottom: Spacing.lg,
-    ...Shadows.sm,
+    ...Shadows.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   formHeader: {
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.xl,
     alignItems: 'center',
   },
   formTitle: {
-    fontSize: Typography.fontSize.xl,
+    fontSize: Typography.fontSize['2xl'],
     fontWeight: Typography.fontWeight.bold,
     color: Colors.text,
-    marginBottom: Spacing.xs,
+    marginBottom: Spacing.sm,
   },
   formSubtitle: {
     fontSize: Typography.fontSize.base,
     color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: Typography.lineHeight.relaxed * Typography.fontSize.base,
+    paddingHorizontal: Spacing.base,
   },
   form: {
-    gap: Spacing.base,
+    gap: Spacing.lg,
   },
   input: {
-    marginBottom: Spacing.sm,
+    marginBottom: 0,
   },
   loginButton: {
-    marginTop: Spacing.base,
+    marginTop: Spacing.sm,
+    ...Shadows.sm,
   },
   demoInfo: {
     backgroundColor: Colors.infoBackground,
@@ -376,42 +387,48 @@ const styles = StyleSheet.create({
   },
   actionLinks: {
     alignItems: 'center',
-    marginBottom: Spacing.lg,
-    gap: Spacing.base,
+    marginTop: Spacing.lg,
+    gap: Spacing.lg,
   },
   actionLink: {
     paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.base,
   },
   actionLinkText: {
     fontSize: Typography.fontSize.base,
     color: Colors.primary,
-    fontWeight: Typography.fontWeight.medium,
+    fontWeight: Typography.fontWeight.semiBold,
     textDecorationLine: 'underline',
+  },
+  bottomContent: {
+    paddingHorizontal: Spacing.xl,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
   },
   securityNotice: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     backgroundColor: Colors.surface,
-    padding: Spacing.base,
-    borderRadius: BorderRadius.base,
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.lg,
     marginBottom: Spacing.lg,
     gap: Spacing.sm,
+    ...Shadows.sm,
   },
   securityText: {
     flex: 1,
     fontSize: Typography.fontSize.sm,
     color: Colors.textSecondary,
-    lineHeight: Typography.lineHeight.normal * Typography.fontSize.sm,
+    lineHeight: Typography.lineHeight.relaxed * Typography.fontSize.sm,
   },
   footer: {
     alignItems: 'center',
-    paddingTop: Spacing.lg,
   },
   footerText: {
     fontSize: Typography.fontSize.xs,
     color: Colors.textLight,
     textAlign: 'center',
-    lineHeight: Typography.lineHeight.normal * Typography.fontSize.xs,
+    lineHeight: Typography.lineHeight.relaxed * Typography.fontSize.xs,
+    paddingHorizontal: Spacing.base,
   },
 });
 

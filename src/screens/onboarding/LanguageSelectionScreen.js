@@ -10,11 +10,13 @@ import {
   ScrollView,
   Animated,
   Pressable,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import GradientView, { GradientPresets } from '../../components/common/GradientView';
 
 import SafeButton from '../../components/common/SafeButton';
-import { Colors, Typography, Spacing, BorderRadius, CommonStyles, Shadows } from '../../constants/theme';
+import { Colors, Typography, Spacing, BorderRadius, Shadows, CommonStyles } from '../../constants/theme';
 import { SUPPORTED_LANGUAGES, getString } from '../../constants/strings';
 import { storageService } from '../../services/storage';
 
@@ -105,13 +107,13 @@ const LanguageSelectionScreen = ({ navigation }) => {
                 styles.languageTitle,
                 isSelected && styles.languageTitleSelected
               ]}>
-                {language.nativeName}
+                {language.nativeName || language.name}
               </Text>
               <Text style={[
                 styles.languageSubtitle,
                 isSelected && styles.languageSubtitleSelected
               ]}>
-                {language.name}
+                {language.name !== language.nativeName ? language.name : ''}
               </Text>
             </View>
           </View>
@@ -127,11 +129,15 @@ const LanguageSelectionScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView 
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
+    <GradientView 
+      {...GradientPresets.subtle}
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView 
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+        >
         {/* Progress Indicator */}
         <View style={styles.progressContainer}>
           <View style={styles.progressBar}>
@@ -145,26 +151,29 @@ const LanguageSelectionScreen = ({ navigation }) => {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.logoContainer}>
-            <View style={styles.logoBackground}>
-              <Ionicons name="shield-checkmark" size={48} color={Colors.primary} />
-            </View>
+            <Image 
+              source={require('../../../assets/migraid-logo.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
             <Text style={styles.appName}>MigrAid</Text>
+            <Text style={styles.tagline}>Safety • Privacy • Community</Text>
           </View>
           <Text style={styles.welcomeTitle}>
             {getString('welcome', selectedLanguage)}
           </Text>
           <Text style={styles.welcomeSubtitle}>
-            {getString('selectLanguage', selectedLanguage)}
+            Choose your preferred language to continue
           </Text>
         </View>
 
         {/* Language Selection */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
-            {getString('chooseLanguage', selectedLanguage)}
+            Select Your Language
           </Text>
           <Text style={styles.sectionDescription}>
-            {getString('languageDescription', selectedLanguage)}
+            Choose the language you'd like to use throughout the app
           </Text>
           
           <View style={styles.languageList}>
@@ -175,7 +184,7 @@ const LanguageSelectionScreen = ({ navigation }) => {
         {/* Continue Button */}
         <View style={styles.actions}>
           <SafeButton
-            title={getString('continue', selectedLanguage)}
+            title="Continue"
             onPress={handleContinue}
             variant="primary"
             size="lg"
@@ -188,18 +197,21 @@ const LanguageSelectionScreen = ({ navigation }) => {
         {/* Footer Info */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            {getString('canChangeLanguage', selectedLanguage)}
+            You can change your language preference anytime in settings
           </Text>
         </View>
-      </ScrollView>
-    </SafeAreaView>
+              </ScrollView>
+      </SafeAreaView>
+    </GradientView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+  },
+  safeArea: {
+    flex: 1,
   },
   content: {
     padding: Spacing.lg,
@@ -233,33 +245,43 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: Spacing.lg,
-  },
-  logoBackground: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: Colors.primaryBackground,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: Colors.backgroundPure,
+    borderRadius: BorderRadius.card,
+    padding: Spacing.xl,
+    ...Shadows.md,
     marginBottom: Spacing.base,
-    ...Shadows.base,
+  },
+  logoImage: {
+    width: 100,
+    height: 100,
+    marginBottom: Spacing.lg,
   },
   appName: {
     ...CommonStyles.heading2,
+    color: Colors.text,
+    fontWeight: Typography.fontWeight.black,
+    marginBottom: Spacing.sm,
+  },
+  tagline: {
+    ...CommonStyles.bodyMedium,
     color: Colors.primary,
-    fontWeight: Typography.fontWeight.bold,
+    fontWeight: Typography.fontWeight.semiBold,
+    letterSpacing: Typography.letterSpacing.wide,
+    textTransform: 'uppercase',
   },
   welcomeTitle: {
     ...CommonStyles.heading1,
     textAlign: 'center',
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.lg,
     color: Colors.text,
+    fontWeight: Typography.fontWeight.black,
   },
   welcomeSubtitle: {
     ...CommonStyles.bodyLarge,
     textAlign: 'center',
     color: Colors.textSecondary,
+    lineHeight: Typography.lineHeight.relaxed,
+    paddingHorizontal: Spacing.lg,
   },
   section: {
     marginBottom: Spacing.xl,
@@ -282,47 +304,58 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.lg,
   },
   languageButton: {
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 2,
-    borderColor: Colors.border,
+    backgroundColor: Colors.backgroundPure,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 3,
+    borderColor: Colors.borderLight,
     overflow: 'hidden',
-    ...Shadows.sm,
+    ...Shadows.md,
+    minHeight: 80,
   },
   languageButtonSelected: {
     borderColor: Colors.primary,
-    backgroundColor: Colors.primaryBackground,
+    backgroundColor: Colors.primaryUltraLight,
+    ...Shadows.lg,
+    transform: [{ scale: 1.02 }],
   },
   languageContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: Spacing.lg,
+    padding: Spacing.xl,
   },
   flagContainer: {
     position: 'relative',
-    marginRight: Spacing.base,
+    marginRight: Spacing.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: Colors.surfaceVariant,
   },
   flagEmoji: {
-    fontSize: 32,
-    lineHeight: 40,
+    fontSize: 28,
+    lineHeight: 32,
   },
   selectedIndicator: {
     position: 'absolute',
-    top: -4,
-    right: -4,
-    backgroundColor: Colors.background,
-    borderRadius: 12,
-    width: 24,
-    height: 24,
+    top: -6,
+    right: -6,
+    backgroundColor: Colors.primary,
+    borderRadius: 15,
+    width: 30,
+    height: 30,
     alignItems: 'center',
     justifyContent: 'center',
-    ...Shadows.base,
+    ...Shadows.primaryShadow,
+    borderWidth: 3,
+    borderColor: Colors.backgroundPure,
   },
   languageInfo: {
     flex: 1,
   },
   languageTitle: {
-    ...CommonStyles.bodyLarge,
+    fontSize: Typography.fontSize.lg,
     fontWeight: Typography.fontWeight.semiBold,
     marginBottom: 2,
     color: Colors.text,
@@ -331,7 +364,7 @@ const styles = StyleSheet.create({
     color: Colors.primary,
   },
   languageSubtitle: {
-    ...CommonStyles.bodySmall,
+    fontSize: Typography.fontSize.sm,
     color: Colors.textSecondary,
   },
   languageSubtitleSelected: {
@@ -360,7 +393,10 @@ const styles = StyleSheet.create({
   },
   continueButton: {
     marginBottom: Spacing.base,
-    ...Shadows.base,
+    ...Shadows.primaryShadow,
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.xl,
+    minHeight: 56,
   },
   footer: {
     alignItems: 'center',

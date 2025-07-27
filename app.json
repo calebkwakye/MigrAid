@@ -4,13 +4,13 @@
     "slug": "MigrAid",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/migraid-logo.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#3B82F6"
+      "image": "./assets/migraid-logo.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#FFFFFF"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -25,8 +25,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#3B82F6"
+        "foregroundImage": "./assets/migraid-logo.png",
+        "backgroundColor": "#FFFFFF"
       },
       "permissions": [
         "ACCESS_COARSE_LOCATION",
@@ -41,7 +41,15 @@
       "bundler": "metro"
     },
     "plugins": [
-      "expo-location"
+      "expo-location",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FFFFFF",
+          "image": "./assets/migraid-logo.png",
+          "resizeMode": "cover"
+        }
+      ]
     ],
     "scheme": "MigrAid"
   }

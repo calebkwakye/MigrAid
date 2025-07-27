@@ -43,6 +43,7 @@ const ProfileScreen = ({ navigation }) => {
   const [storageInfo, setStorageInfo] = useState(null);
   const [dataSummary, setDataSummary] = useState(null);
   const [exportData, setExportData] = useState(null);
+  const [advocateSession, setAdvocateSession] = useState(null);
 
   const emergencyContacts = [
     {
@@ -303,11 +304,17 @@ const ProfileScreen = ({ navigation }) => {
   };
 
   const makeEmergencyCall = (contact) => {
-    if (contact.number.includes('741741')) {
+    if (contact.number.includes('741741') || contact.number.includes('Text HOME')) {
       Alert.alert(
         'Crisis Text Line',
-        'Text HOME to 741741 for mental health crisis support',
-        [{ text: 'OK' }]
+        'Send a text message "HOME" to 741741 for mental health crisis support?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { 
+            text: 'Send Text', 
+            onPress: () => Linking.openURL('sms:741741&body=HOME') 
+          }
+        ]
       );
     } else {
       Alert.alert(
@@ -323,7 +330,81 @@ const ProfileScreen = ({ navigation }) => {
   };
 
   const handleAdvocateLogin = () => {
-    navigation.navigate('Advocate', { screen: 'AdvocateLogin' });
+    // Always go to advocate dashboard - it will handle login redirect if needed
+    navigation.navigate('Advocate', { screen: 'AdvocateDashboard' });
+  };
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Sign Out',
+      'What would you like to do when signing out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Keep My Data',
+          onPress: () => performLogout(false),
+        },
+        {
+          text: 'Clear All Data',
+          style: 'destructive',
+          onPress: () => performLogout(true),
+        },
+      ]
+    );
+  };
+
+  const performLogout = async (clearData) => {
+    try {
+      // Clear advocate session if exists
+      await storageService.removeItem('@migraid:advocateSession');
+      
+      if (clearData) {
+        // Clear all user data
+        const result = await storageService.deleteAllUserData();
+        if (result.success) {
+          Alert.alert(
+            'Signed Out',
+            'You have been signed out and all your data has been cleared. The app will restart with default settings.',
+            [
+              {
+                text: 'OK',
+                onPress: () => {
+                  // Reset to onboarding
+                  storageService.setOnboardingComplete(false);
+                  // In a real app, you might want to restart or navigate to onboarding
+                  navigation.navigate('Advocate', { screen: 'AdvocateLogin' });
+                }
+              }
+            ]
+          );
+        } else {
+          Alert.alert('Logout Error', 'Failed to clear data. Please try again.');
+          return;
+        }
+      } else {
+        // Just clear session and navigate to login
+        Alert.alert(
+          'Signed Out',
+          'You have been successfully signed out. Your saved data and preferences are preserved.',
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                navigation.navigate('Advocate', { screen: 'AdvocateLogin' });
+              }
+            }
+          ]
+        );
+      }
+      
+      // Reload the screen data to reflect the logged out state
+      await loadAllSettings();
+      await loadStorageInfo();
+      
+    } catch (error) {
+      console.warn('Error during logout:', error);
+      Alert.alert('Logout Error', 'Failed to sign out. Please try again.');
+    }
   };
 
   const renderLanguageSelector = () => (
@@ -830,6 +911,19 @@ const ProfileScreen = ({ navigation }) => {
         },
       ],
     },
+    {
+      title: 'Account & Security',
+      items: [
+        {
+          id: 'logout',
+          title: 'Sign Out',
+          subtitle: 'Sign out and optionally clear stored data',
+          icon: 'log-out-outline',
+          type: 'danger',
+          action: handleLogout,
+        },
+      ],
+    },
   ];
 
   const renderSettingItem = (item) => (
@@ -950,16 +1044,31 @@ const ProfileScreen = ({ navigation }) => {
         <View style={styles.advocateSection}>
           <Text style={styles.groupTitle}>Community Advocates</Text>
           <TouchableOpacity style={styles.advocateCard} onPress={handleAdvocateLogin}>
-            <Ionicons name="people-outline" size={32} color={Colors.info} />
+            <Ionicons 
+              name={advocateSession ? "people" : "people-outline"} 
+              size={32} 
+              color={advocateSession ? Colors.success : Colors.info} 
+            />
             <View style={styles.advocateContent}>
-              <Text style={styles.advocateTitle}>Advocate Access</Text>
-              <Text style={styles.advocateDescription}>
-                Access management tools for verified community advocates and NGO workers
+              <Text style={styles.advocateTitle}>
+                {advocateSession ? 'Advocate Dashboard' : 'Advocate Access'}
               </Text>
+              <Text style={styles.advocateDescription}>
+                {advocateSession 
+                  ? `Signed in as ${advocateSession.username?.split('@')[0] || 'Advocate'} • Tap to open dashboard`
+                  : 'Access management tools for verified community advocates and NGO workers'
+                }
+              </Text>
+              {advocateSession && (
+                <View style={styles.advocateStatusBadge}>
+                  <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
+                  <Text style={styles.advocateStatusText}>Active Session</Text>
             </View>
+              )}
+          </View>
             <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
           </TouchableOpacity>
-          </View>
+        </View>
 
         {/* Data Summary */}
         {dataSummary && (
@@ -1145,6 +1254,17 @@ const styles = StyleSheet.create({
   advocateDescription: {
     fontSize: Typography.fontSize.sm,
     color: Colors.textSecondary,
+  },
+  advocateStatusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: Spacing.xs,
+    gap: Spacing.xs,
+  },
+  advocateStatusText: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.success,
+    fontWeight: Typography.fontWeight.medium,
   },
   dataSummarySection: {
     marginBottom: Spacing.lg,
